@@ -37,4 +37,4 @@ ATPROTO_BASE_URL=https://atproto.chadig.com ATPROTO_HANDLE=publicdomainrelay.atp
 - References
   - https://bsky.app/profile/johnandersen777.bsky.social/post/3lc47yvadu22i
 
-[![asciicast](https://asciinema.org/a/693001.svg)](https://asciinema.org/a/693001)
+[![asciicast](https://asciinema.org/a/693007.svg)](https://asciinema.org/a/693007)
