@@ -1,10 +1,14 @@
 import os
 import hashlib
+import pathlib
+import textwrap
 import contextlib
 from typing import Annotated
 
+import markdown2
 from atproto import AsyncClient, models
 from fastapi import FastAPI, File, UploadFile, Request, Response
+from fastapi.responses import HTMLResponse
 
 from .zip_image import encode, decode
 
@@ -16,12 +20,37 @@ atproto_handle = os.environ["ATPROTO_HANDLE"]
 atproto_password= os.environ["ATPROTO_PASSWORD"]
 
 did_plcs = {}
+markdown_html_content_by_file = {}
 client = AsyncClient(
     base_url=atproto_base_url,
 )
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
+    markdown_content = pathlib.Path(
+        __file__
+    ).parents[2].joinpath(
+        "README.md",
+    ).read_text()
+    readme_markdown_html = markdown2.markdown(
+        markdown_content,
+        extras=[
+            "fenced-code-blocks",
+            "code-friendly",
+            "highlightjs-lang",
+        ],
+    )
+    markdown_html_content_by_file["README.md"] = textwrap.dedent(
+        f"""
+        <html>
+            <title>{markdown_content.split("\n")[0].replace("# ", "")}</title>
+            <body>
+                {readme_markdown_html}
+            </body>
+        </html>
+        """.strip()
+    )
+
     profile = await client.login(
         atproto_handle,
         atproto_password,
@@ -62,3 +91,7 @@ async def get(post_id: str):
     )
     mimetype, output_bytes = decode(blob)
     return Response(content=output_bytes, media_type=mimetype)
+
+@app.get("/", response_class=HTMLResponse)
+async def root():
+    return markdown_html_content_by_file["README.md"]
