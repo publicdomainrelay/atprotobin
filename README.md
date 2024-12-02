@@ -1,5 +1,7 @@
 # ATProto based pastebin
 
+GitHub: https://github.com/publicdomainrelay/atprotobin
+
 Paste
 
 ```bash
