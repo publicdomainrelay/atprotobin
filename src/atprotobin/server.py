@@ -3,6 +3,7 @@ import hashlib
 import pathlib
 import textwrap
 import contextlib
+import urllib.request
 from typing import Annotated
 
 import markdown2
@@ -27,11 +28,17 @@ client = AsyncClient(
 
 @contextlib.asynccontextmanager
 async def lifespan(app: FastAPI):
-    markdown_content = pathlib.Path(
-        __file__
-    ).parents[2].joinpath(
-        "README.md",
-    ).read_text()
+    try:
+        # For when in local dev
+        markdown_content = pathlib.Path(
+            __file__
+        ).parents[2].joinpath(
+            "README.md",
+        ).read_text()
+    except:
+        markdown_content = urllib.request.urlopen(
+            "https://github.com/publicdomainrelay/atprotobin/raw/refs/heads/main/README.md",
+        ).read().decode()
     readme_markdown_html = markdown2.markdown(
         markdown_content,
         extras=[
