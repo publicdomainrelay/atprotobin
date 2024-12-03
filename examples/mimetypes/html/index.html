@@ -1,0 +1,62 @@
+<!DOCTYPE html>
+<html>
+<body>
+
+<h1>The script element</h1>
+
+<textarea id="write-code-here">
+document.getElementById("fetch-response").innerText = "Success!";
+</textarea>
+
+<button onclick="add_more_code()">Post the code and run it on this page</button>
+
+<p id="fetch-response"></p>
+
+<script>
+async function add_more_code() {
+  document.getElementById("fetch-response").innerText = "";
+  try {
+    // Define the filename and contents
+    const filename = "example.js";
+    const contents = document.getElementById("write-code-here").value;
+
+    // Create a File object
+    const file = new File([contents], filename, { type: "text/plain" });
+
+    // Create a FormData object to send the file
+    const formData = new FormData();
+    formData.append("file", file);
+
+    // Define the target URL for the POST request
+    const targetUrl = window.location.origin;
+
+    // Perform the fetch request
+    const response = await fetch(targetUrl, {
+      method: "POST",
+      body: formData,
+    });
+
+    // Check if the response is successful
+    if (!response.ok) {
+      throw new Error(`HTTP error! Status: ${response.status}`);
+    }
+
+    // Parse the response JSON
+    const data = await response.json();
+
+    // Log the response JSON
+    console.log("Response JSON:", data);
+    document.getElementById("fetch-response").innerText = `${JSON.stringify(data)}`;
+
+    var more_code = document.createElement("script");
+    more_code.setAttribute("src", `${window.location.origin}/${data.id}`);
+    document.body.appendChild(more_code);
+  } catch (error) {
+    console.error(error);
+    document.getElementById("fetch-response").innerText = `${error}`;
+  }
+}
+</script>
+
+</body>
+</html>
