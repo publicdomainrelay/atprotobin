@@ -43,4 +43,10 @@ ATPROTO_BASE_URL=https://atproto.chadig.com ATPROTO_HANDLE=publicdomainrelay.atp
 - References
   - https://bsky.app/profile/johnandersen777.bsky.social/post/3lc47yvadu22i
 
-[![asciicast](https://asciinema.org/a/693007.svg)](https://asciinema.org/a/693007)
+## Upload and exec() with deno via POST
+
+[![asciicast-backend](https://asciinema.org/a/693110.svg)](https://asciinema.org/a/693110)
+
+## Upload basic
+
+[![asciicast-basic](https://asciinema.org/a/693007.svg)](https://asciinema.org/a/693007)
