@@ -34,11 +34,13 @@ python -m pip install -e .
 ATPROTO_BASE_URL=https://atproto.chadig.com ATPROTO_HANDLE=publicdomainrelay.atproto.chadig.com ATPROTO_PASSWORD=$(python -m keyring get publicdomainrelay@protonmail.com password.publicdomainrelay.atproto.chadig.com) python -m atprotobin
 ```
 
+- Features
+  - mimetype Content-Type blob resolution
+  - text/javascript backend exec sandboxed with `deno --allow-net`
+- TODO
+  - Receive webhook from VCS, get OIDC token, get secret using OIDC, trigger
+    push and pull for federated repo.
 - References
   - https://bsky.app/profile/johnandersen777.bsky.social/post/3lc47yvadu22i
 
 [![asciicast](https://asciinema.org/a/693007.svg)](https://asciinema.org/a/693007)
-
-- TODO
-  - Receive webhook from VCS, get OIDC token, get secret using OIDC, trigger
-    push and pull for federated repo.

@@ -1,4 +1,5 @@
 import os
+import json
 import asyncio
 import hashlib
 import pathlib
@@ -11,7 +12,7 @@ from typing import Annotated
 import markdown2
 from pydantic import BaseModel
 from atproto import AsyncClient, models
-from fastapi import FastAPI, File, UploadFile, Request, Response
+from fastapi import FastAPI, File, UploadFile, Request, Response, HTTPException
 from fastapi.responses import HTMLResponse
 
 from .zip_image import encode, decode
@@ -123,6 +124,50 @@ async def load_and_decode(post_id: str) -> tuple[str, bytes]:
 async def get(post_id: str):
     blob = await load_and_decode(post_id)
     return Response(content=blob.contents, media_type=blob.mimetype)
+
+RUNABLE_MIMETYPES = [
+    "text/javascript",
+    "application/javascript",
+]
+
+# TODO https://www.thc.org/segfault/ hot pool
+@app.post("/{post_id}")
+async def exec(post_id: str, request: Request):
+    global RUNABLE_MIMETYPES
+    blob = await load_and_decode(post_id)
+    if blob.mimetype not in RUNABLE_MIMETYPES:
+        raise HTTPException(
+            status_code=415,
+            detail=f"Invalid file mimetype: {blob.mimetype!r}) runnable: {RUNABLE_MIMETYPES!r}",
+        )
+    with tempfile.TemporaryDirectory() as tempdir:
+        file_path = pathlib.Path(tempdir, "script.js")
+        file_path.write_bytes(blob.contents)
+        cmd = [
+            "deno",
+            "--allow-net",
+            file_path.name,
+        ]
+        proc = await asyncio.create_subprocess_exec(
+            *cmd,
+            stdin=asyncio.subprocess.PIPE,
+            stdout=asyncio.subprocess.PIPE,
+            stderr=asyncio.subprocess.PIPE,
+            cwd=tempdir,
+        )
+        stdout, stderr = await proc.communicate(input=await request.body())
+    try:
+        stdout_string = stdout.decode()
+        return json.loads(stdout_string)
+    except:
+        return {
+            "error": {
+                "detail": {
+                    "stdout": stdout_string,
+                    "stderr": stderr.decode(),
+                },
+            },
+        }
 
 @app.get("/", response_class=HTMLResponse)
 async def root():
