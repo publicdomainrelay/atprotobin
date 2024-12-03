@@ -5,7 +5,7 @@ GitHub: https://github.com/publicdomainrelay/atprotobin
 Paste
 
 ```bash
-curl -X POST --data-binary @README.md -H "Content-Type: text/plain" https://paste.chadig.com
+curl -X POST -F file=@README.md https://paste.chadig.com
 ```
 
 Retrive using id from paste reponse JSON (`| jq -r .id`)
@@ -17,13 +17,13 @@ curl -sf https://paste.chadig.com/$id
 Paste and retrive
 
 ```bash
-curl -sf https://paste.chadig.com/$(curl -X POST --data-binary @README.md -H "Content-Type: text/plain" https://paste.chadig.com | tee /dev/stderr | jq -r .id)
+curl -sf https://paste.chadig.com/$(curl -X POST -F file=@README.md https://paste.chadig.com | tee /dev/stderr | jq -r .id)
 ```
 
 Paste and retrive (development)
 
 ```bash
-curl -sf http://localhost:8000/$(curl -X POST --data-binary @src/atprotobin/cli.py -H "Content-Type: text/plain" http://localhost:8000/ | tee /dev/stderr | jq -r .id)
+curl -sf http://localhost:8000/$(curl -X POST -F file=@src/atprotobin/cli.py http://localhost:8000/ | tee /dev/stderr | jq -r .id)
 ```
 
 Start server
