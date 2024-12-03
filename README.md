@@ -38,3 +38,7 @@ ATPROTO_BASE_URL=https://atproto.chadig.com ATPROTO_HANDLE=publicdomainrelay.atp
   - https://bsky.app/profile/johnandersen777.bsky.social/post/3lc47yvadu22i
 
 [![asciicast](https://asciinema.org/a/693007.svg)](https://asciinema.org/a/693007)
+
+- TODO
+  - Receive webhook from VCS, get OIDC token, get secret using OIDC, trigger
+    push and pull for federated repo.

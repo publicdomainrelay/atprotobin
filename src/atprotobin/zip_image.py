@@ -1,15 +1,18 @@
 # cat ~/Documents/publicdomainrelay/gitatp/src/gitatp/update_profile.js | python -u src/federation_git/policy_image.py | tee policy_image.png | python -u src/federation_git/policy_image.py
 import sys
 import zipfile
+import mimetypes
 from io import BytesIO
 
 import magic
 from PIL import Image, ImageDraw, ImageFont
 
 # Create a zip archive containing the internal files
-def create_zip_of_files(file_contents, file_name: str = "manifest"):
+def create_zip_of_files(file_contents, file_name: str = None):
     zip_buffer = BytesIO()
     mimetype = magic.from_buffer(file_contents, mime=True)
+    if mimetype == "text/plain" and file_name is not None:
+        mimetype = mimetypes.guess_file_type(file_name)
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zipf.writestr(mimetype, file_contents)
     zip_buffer.seek(0)
@@ -63,11 +66,11 @@ def create_png_with_zip(zip_data, text_content):
 
     return png_zip_data
 
-def encode(input_data):
+def encode(input_data, file_name: str = None):
     text_content = input_data.decode()
 
     # Create zip archive of internal files
-    mimetype, zip_data = create_zip_of_files(text_content)
+    mimetype, zip_data = create_zip_of_files(text_content, file_name=file_name)
 
     # Create PNG with embedded zip and rendered text
     png_zip_data = create_png_with_zip(zip_data, text_content)

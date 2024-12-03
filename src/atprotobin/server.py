@@ -1,6 +1,8 @@
 import os
+import asyncio
 import hashlib
 import pathlib
+import tempfile
 import textwrap
 import contextlib
 import urllib.request
@@ -68,13 +70,15 @@ async def lifespan(app: FastAPI):
 app = FastAPI(lifespan=lifespan)
 
 @app.post("/")
-async def create(request: Request):
-    file_data = await request.body()
+async def create(file: UploadFile):
+    file_data = await file.read()
     hash_instance = hashlib.new(hash_alg)
     hash_instance.update(file_data)
     data_as_image_hash = hash_instance.hexdigest()
     data_as_image_hash = f"{hash_alg}:{data_as_image_hash}"
-    _mimetype, data_as_image = encode(file_data)
+    mimetype, data_as_image = await asyncio.get_event_loop().run_in_executor(
+        None, encode, file_data, file.filename,
+    )
     post = await client.send_image(
         text=data_as_image_hash,
         image=data_as_image,
@@ -87,8 +91,7 @@ async def create(request: Request):
         "cid": post.cid,
     }
 
-@app.get("/{post_id}")
-async def get(post_id: str):
+async def load_and_decode(post_id: str) -> tuple[str, bytes]:
     post = await client.get_post(post_id)
     blob = await client.com.atproto.sync.get_blob(
         models.com.atproto.sync.get_blob.Params(
@@ -96,7 +99,13 @@ async def get(post_id: str):
             did=did_plcs[atproto_handle],
         ),
     )
-    mimetype, output_bytes = decode(blob)
+    return await asyncio.get_event_loop().run_in_executor(
+        None, decode, blob,
+    )
+
+@app.get("/{post_id}")
+async def get(post_id: str):
+    mimetype, output_bytes = await load_and_decode(post_id)
     return Response(content=output_bytes, media_type=mimetype)
 
 @app.get("/", response_class=HTMLResponse)
