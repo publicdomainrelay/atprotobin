@@ -9,6 +9,7 @@ import urllib.request
 from typing import Annotated
 
 import markdown2
+from pydantic import BaseModel
 from atproto import AsyncClient, models
 from fastapi import FastAPI, File, UploadFile, Request, Response
 from fastapi.responses import HTMLResponse
@@ -80,7 +81,7 @@ async def create(file: UploadFile):
         None, encode, file_data, file.filename,
     )
     post = await client.send_image(
-        text=data_as_image_hash,
+        text=mimetype,
         image=data_as_image,
         image_alt=data_as_image_hash,
     )
@@ -91,6 +92,12 @@ async def create(file: UploadFile):
         "cid": post.cid,
     }
 
+class Blob(BaseModel):
+    hash_alg: str
+    hash_value: str
+    mimetype: str
+    contents: bytes
+
 async def load_and_decode(post_id: str) -> tuple[str, bytes]:
     post = await client.get_post(post_id)
     blob = await client.com.atproto.sync.get_blob(
@@ -99,14 +106,23 @@ async def load_and_decode(post_id: str) -> tuple[str, bytes]:
             did=did_plcs[atproto_handle],
         ),
     )
-    return await asyncio.get_event_loop().run_in_executor(
+    data_as_image_hash = post.value.embed.images[0].alt
+    hash_alg = data_as_image_hash.split(":", maxsplit=1)[0]
+    hash_value = data_as_image_hash.split(":", maxsplit=1)[1]
+    mimetype, contents = await asyncio.get_event_loop().run_in_executor(
         None, decode, blob,
+    )
+    return Blob(
+        hash_alg=hash_alg,
+        hash_value=hash_value,
+        mimetype=mimetype,
+        contents=contents,
     )
 
 @app.get("/{post_id}")
 async def get(post_id: str):
-    mimetype, output_bytes = await load_and_decode(post_id)
-    return Response(content=output_bytes, media_type=mimetype)
+    blob = await load_and_decode(post_id)
+    return Response(content=blob.contents, media_type=blob.mimetype)
 
 @app.get("/", response_class=HTMLResponse)
 async def root():

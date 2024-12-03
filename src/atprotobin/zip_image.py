@@ -12,7 +12,10 @@ def create_zip_of_files(file_contents, file_name: str = None):
     zip_buffer = BytesIO()
     mimetype = magic.from_buffer(file_contents, mime=True)
     if mimetype == "text/plain" and file_name is not None:
-        mimetype = mimetypes.guess_file_type(file_name)
+        if hasattr(mimetypes, "guess_file_type"):
+            mimetype = mimetypes.guess_file_type(file_name)
+        else:
+            mimetype, _encoding = mimetypes.guess_type(file_name)
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zipf.writestr(mimetype, file_contents)
     zip_buffer.seek(0)
