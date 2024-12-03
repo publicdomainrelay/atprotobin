@@ -2,10 +2,16 @@
 
 GitHub: https://github.com/publicdomainrelay/atprotobin
 
-Paste
+Paste file
 
 ```bash
 curl -X POST -F file=@README.md https://paste.chadig.com
+```
+
+Paste from clipboard (linux with xclip)
+
+```bash
+curl -X POST -F file=@<(xclip) https://paste.chadig.com
 ```
 
 Retrive using id from paste reponse JSON (`| jq -r .id`)

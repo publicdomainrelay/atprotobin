@@ -16,6 +16,8 @@ def create_zip_of_files(file_contents, file_name: str = None):
             mimetype = mimetypes.guess_file_type(file_name)
         else:
             mimetype, _encoding = mimetypes.guess_type(file_name)
+    if mimetype is None:
+        mimetype = "text/plain"
     with zipfile.ZipFile(zip_buffer, 'w', zipfile.ZIP_DEFLATED) as zipf:
         zipf.writestr(mimetype, file_contents)
     zip_buffer.seek(0)
