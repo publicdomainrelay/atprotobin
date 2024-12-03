@@ -1,0 +1,13 @@
+[Unit]
+Description=ATProto based pastbin
+[Service]
+Type=simple
+TimeoutStartSec=0
+ExecStart=/home/atprotobin/.venv/bin/python -m atprotobin
+User=atprotobin
+Environment=VIRTUAL_ENV=/home/atprotobin/.venv
+Environment=ATPROTO_BASE_URL=https://atproto.chadig.com
+Environment=ATPROTO_HANDLE=publicdomainrelay.atproto.chadig.com
+Environment=ATPROTO_PASSWORD=AAAAAAAAAAAAAAAAAAAAAAAA
+[Install]
+WantedBy=default.target
